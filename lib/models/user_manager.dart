@@ -1,86 +1,79 @@
 import 'package:flashcards/models/user.dart';
-import 'package:flashcards/models/flashcard.dart';
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
+import 'package:isar/isar.dart';
 
-enum CreateUserResult {
-  success,
-  userAlreadyExists,
+class UserOperationException implements Exception {
+  String cause;
+  UserOperationException(this.cause);
 }
 
-enum LoginUserResult {
-  success,
-  wrongUserKey,
-}
-
-enum DeleteUserResult {
-  success,
-  userDoesNotExist,
-}
-
-class UserKey {
-  final String _key;
-  UserKey(String username, int passHash) : _key = "$username$passHash";
-  @override
-  bool operator ==(covariant other) {
-    return hashCode == other.hashCode;
-  }
-
-  @override
-  int get hashCode => _key.hashCode;
+int _genUserId(String username, int passHash) {
+  return "$username$passHash".hashCode;
 }
 
 class UserManager extends ChangeNotifier {
-  final Map<UserKey, User> _userMap;
-  User currentUser;
+  Isar isarInstance;
+  User? currentUser;
+  late int _userCount;
+  int get length => _userCount;
 
-  UserManager()
-      : _userMap = {},
-        currentUser = anonymousUser;
+  UserManager({required this.isarInstance}) {
+    _userCount = isarInstance.collection<PersistentUserData>().countSync();
+  }
 
-  int get length => _userMap.length;
+  void create(String username, int passHash) {
+    PersistentUserData persistentUserData =
+        PersistentUserData(name: username, id: _genUserId(username, passHash));
+    isarInstance.writeTxnSync(() {
+      return isarInstance.persistentUserDatas.putSync(persistentUserData);
+    });
+    User newUser = User(
+      persistentUserData: persistentUserData,
+      isarInstance: isarInstance,
+    );
+    currentUser = newUser;
+    _userCount += 1;
+    notifyListeners();
+  }
 
-  CreateUserResult create(String username, int passHash,
-      {List<Flashcard>? flashcards}) {
-    final key = UserKey(username, passHash);
-    if (_userMap.containsKey(key)) {
-      return CreateUserResult.userAlreadyExists;
+  void login(String username, int passHash) {
+    PersistentUserData? persistentUserData = isarInstance
+        .collection<PersistentUserData>()
+        .getSync(_genUserId(username, passHash));
+    if (persistentUserData == null) {
+      throw UserOperationException("User $username not found.");
     }
-    final user = User(name: username);
-    _userMap.addAll({key: user});
+    User user = User(
+      persistentUserData: persistentUserData,
+      isarInstance: isarInstance,
+    );
     currentUser = user;
     notifyListeners();
-    return CreateUserResult.success;
   }
 
-  LoginUserResult login(String username, int passHash) {
-    final key = UserKey(username, passHash);
-    final user = _userMap[key];
-    if (user == null) {
-      return LoginUserResult.wrongUserKey;
+  void delete(String username, int passHash) {
+    final bool txResult = isarInstance.writeTxnSync(() {
+      return isarInstance
+          .collection<User>()
+          .deleteSync(_genUserId(username, passHash));
+    });
+    if (txResult == false) {
+      throw UserOperationException(
+          "User $username could not be deleted. Possibly, this user does not exist");
     }
-    currentUser = user;
+    _userCount -= 1;
     notifyListeners();
-    return LoginUserResult.success;
   }
 
-  DeleteUserResult delete(String username, int passHash) {
-    final key = UserKey(username, passHash);
-    if (!_userMap.containsKey(key)) {
-      return DeleteUserResult.userDoesNotExist;
-    }
-    final user = _userMap[key];
-    if (currentUser == user) {
-      currentUser = _userMap.values
-          .firstWhere((value) => value != user, orElse: () => anonymousUser);
-    }
-    _userMap.remove(key);
-    notifyListeners();
-    return DeleteUserResult.success;
+  void save(User user) {
+    isarInstance.writeTxnSync(() {
+      return isarInstance
+          .collection<PersistentUserData>()
+          .putSync(user.persistentUserData);
+    });
   }
 
-  // bool storeCurrent(Iterable<Flashcard> currentUserFlashcards) {
-  // }
-
-  // Iterable<Flashcard>? loadCurrent() {return null;}
+  void saveCurrentUser() {
+    return save(currentUser!);
+  }
 }

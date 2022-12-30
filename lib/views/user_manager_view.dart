@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-import 'dart:convert';
-import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 import 'package:flashcards/models/user_manager.dart';
 import 'package:flashcards/views/styled_widgets.dart';
-import 'package:flashcards/views/user.dart';
 
 class UserManagerView extends StatelessWidget {
   const UserManagerView({super.key});
@@ -26,9 +22,9 @@ class UserManagerView extends StatelessWidget {
           child: const StyledText("Back"),
         ),
       ),
-      StyledText(context.watch<UserManager>().currentUser.name),
+      StyledText(context.watch<UserManager>().currentUser!.name),
       MainButtonStyle(
-        onPressed: userCount > 1
+        onPressed: userCount > 0
             ? () {
                 Navigator.of(context).pushNamed('/login_user');
               }

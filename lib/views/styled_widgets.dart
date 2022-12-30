@@ -8,9 +8,7 @@ class StyledText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 18.0,
-      ),
+      style: Theme.of(context).textTheme.bodyText1,
     );
   }
 }

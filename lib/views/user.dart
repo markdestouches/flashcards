@@ -1,9 +1,11 @@
 import 'package:flashcards/models/flashcard.dart';
-import 'package:flashcards/models/flashcard_manager.dart';
+import 'package:flashcards/models/user.dart';
+import 'package:flashcards/views/flashcard.dart';
 import 'package:flutter/material.dart';
 import 'package:flashcards/views/styled_widgets.dart';
 import 'package:flashcards/models/user_manager.dart';
 import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
 
 class _UserFieldsView extends StatefulWidget {
   final void Function(BuildContext, String, int)? handleUserInput;
@@ -80,21 +82,17 @@ class _UserFieldsViewState extends State<_UserFieldsView> {
   }
 }
 
-class UserCreateView extends StatelessWidget {
-  const UserCreateView({super.key});
+class UserRegisterView extends StatelessWidget {
+  const UserRegisterView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return _UserFieldsView(
       submitButtonText: "Create",
       handleUserInput: (context, username, passHash) {
-        final result = context.read<UserManager>().create(username, passHash);
-        print("$result");
-        if (result == CreateUserResult.userAlreadyExists) {
-          print("UNIMPLEMENTED: show \"User Already Exists\" popup");
-        } else {
-          Navigator.of(context).pop();
-        }
+        context.read<UserManager>().create(username, passHash);
+        // Navigator.of(context).pop();
+        Navigator.of(context).pop();
       },
     );
   }
@@ -108,13 +106,9 @@ class UserLoginView extends StatelessWidget {
     return _UserFieldsView(
       submitButtonText: "Login",
       handleUserInput: (context, username, passHash) {
-        final result = context.read<UserManager>().login(username, passHash);
-        print("$result");
-        if (result == LoginUserResult.wrongUserKey) {
-          print("UNIMPLEMENTED: show \"Username or password is incorrect\"");
-        } else {
-          Navigator.of(context).pop();
-        }
+        context.read<UserManager>().login(username, passHash);
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
       },
     );
   }
@@ -128,48 +122,172 @@ class UserDeleteView extends StatelessWidget {
     return _UserFieldsView(
       submitButtonText: "Delete",
       handleUserInput: (context, username, passHash) {
-        final result = context.read<UserManager>().delete(username, passHash);
-        print("$result");
-        if (result == DeleteUserResult.userDoesNotExist) {
-          print("UNIMPLEMENTED: show \"The user does not exist\"");
-        } else {
-          Navigator.of(context).pop();
-        }
+        context.read<UserManager>().delete(username, passHash);
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
       },
     );
   }
 }
 
-class UserCardsView extends StatelessWidget {
-  const UserCardsView({super.key});
+class CurrentTime {
+  final DateTime value;
+  CurrentTime() : value = DateTime.now();
+}
+
+class UserFlashcardsView extends StatelessWidget {
+  const UserFlashcardsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final flashcard = context
-        .select<FlashcardManager, Flashcard?>((manager) => manager.first());
+    final flashcards =
+        context.select<User, List<Flashcard>>((user) => user.flashcards);
+    return StreamProvider<CurrentTime>.value(
+      initialData: CurrentTime(),
+      value: Stream.periodic(
+        const Duration(seconds: 1),
+        (_) => CurrentTime(),
+      ),
+      child: Builder(builder: (context) {
+        final currentTime = context.watch<CurrentTime>().value;
+        return Column(
+          children: [
+            const _AddFlashcardButton(),
+            SizedBox(
+              width: 300,
+              height: 300,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: flashcards.length,
+                itemBuilder: (context, index) {
+                  final flashcard = flashcards[index];
+                  int timeTillAlert =
+                      flashcard.alertTime.difference(currentTime).inSeconds;
+                  timeTillAlert = timeTillAlert >= 0 ? timeTillAlert : 0;
+                  final buttonBackgroundColor = Colors
+                          .primaries[(index * index) % Colors.primaries.length]
+                      [((index + 1) * 100) % 700];
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          elevation: 0.0,
+                          backgroundColor: buttonBackgroundColor,
+                          shape: const BeveledRectangleBorder(
+                              borderRadius: BorderRadius.zero)),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: ((context) {
+                              return CheckFlashcardView(
+                                flashcard: flashcard,
+                              );
+                            }),
+                          ),
+                        );
+                      },
+                      child: Column(children: [
+                        StyledText(flashcard.name),
+                        StyledText("Next Alert In: $timeTillAlert"),
+                      ]),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+}
 
-    if (flashcard != null) {
-      final timeTillAlert =
-          DateTime.now().difference(flashcard.alertTime).toString();
-      return Column(
-        children: [
-          MainButtonStyle(
-            onPressed: () {
-              Navigator.of(context).pushNamed('/add_flashcard');
-            },
-            child: const StyledText("Add Flashcard"),
-          ),
-          StyledText(flashcard.name),
-          StyledText('Review in: $timeTillAlert'),
-        ],
-      );
-    } else {
-      return MainButtonStyle(
-        onPressed: () {
-          Navigator.of(context).pushNamed('/add_flashcard');
-        },
-        child: const StyledText("Add Flashcard"),
-      );
-    }
+class _AddFlashcardButton extends StatelessWidget {
+  const _AddFlashcardButton({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MainButtonStyle(
+      onPressed: () {
+        Navigator.of(context).pushNamed('/add_flashcard');
+      },
+      child: const StyledText("Add Flashcard"),
+    );
+  }
+}
+
+class UserCardListView extends StatelessWidget {
+  const UserCardListView({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final flashcards = context.watch<User>().flashcards;
+    return Flexible(
+      child: ListView.builder(
+        physics: const ClampingScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: flashcards.length,
+        itemBuilder: ((context, index) {
+          final card = flashcards[index];
+          return CardView(card: card, index: index);
+        }),
+      ),
+    );
+  }
+}
+
+class CardView extends StatelessWidget {
+  const CardView({
+    Key? key,
+    required this.card,
+    required this.index,
+  }) : super(key: key);
+
+  final Flashcard card;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        color: Colors.lightBlue[(index + 1) * 50],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              const StyledText("name: "),
+              card.hint != null ? const StyledText("hint: ") : Container(),
+              Column(
+                children: card.hidden
+                    .mapIndexed(
+                      (i, e) => StyledText("hidden field #${i + 1}: "),
+                    )
+                    .toList(),
+              ),
+              const StyledText("created: "),
+              const StyledText("due: "),
+              const StyledText("next alert in: "),
+              const StyledText("id: "),
+            ]),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              StyledText(card.name),
+              card.hint != null ? StyledText(card.hint!) : Container(),
+              Column(
+                children: card.hidden
+                    .map(
+                      (e) => StyledText(e),
+                    )
+                    .toList(),
+              ),
+              StyledText(card.created.toString()),
+              StyledText(card.alertTime.toString()),
+              StyledText(card.alertTime.difference(card.created).toString()),
+            ]),
+          ],
+        ),
+      ),
+    );
   }
 }
