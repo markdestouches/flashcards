@@ -126,7 +126,7 @@ class CheckFlashcardView extends StatefulWidget {
 }
 
 class _CheckFlashcardViewState extends State<CheckFlashcardView> {
-  bool isHintDisplayed = false;
+  bool isHintShown = false;
 
   @override
   Widget build(BuildContext context) {
@@ -151,13 +151,13 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
               child: StyledText("Check flashcard: ${widget.flashcard.name}"),
             ),
             widget.flashcard.hint != null
-                ? isHintDisplayed
+                ? isHintShown
                     ? StyledText(widget.flashcard.hint!)
                     : MainButtonStyle(
                         onPressed: () {
                           setState(
                             () {
-                              isHintDisplayed = true;
+                              isHintShown = true;
                             },
                           );
                         },
@@ -181,13 +181,14 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
             ),
             MainButtonStyle(
               onPressed: () {
-                final result = context.read<User>().checkFlashcardGuess(
-                    widget.flashcard,
-                    controllers
-                        .map(
-                          (e) => e.text,
-                        )
-                        .toList());
+                final FlashcardGuess flashcardGuess = FlashcardGuess(
+                  flashcard: widget.flashcard,
+                  guessFields: controllers.map((e) => e.text).toList(),
+                  isHintShown: isHintShown,
+                );
+
+                final result =
+                    context.read<User>().checkFlashcardGuess(flashcardGuess);
                 AlertDialog(
                   title: StyledText(result == true ? "Correct" : "Incorrect"),
                 );

@@ -28,14 +28,14 @@ class Flashcard {
         alertTime = DateTime.now().add(_alertOffsets[0]),
         alertOffsetIndex = 0;
 
-  void adjustAlertTime(bool isCorrectGuess) {
-    if (isCorrectGuess == true) {
-      if (alertOffsetIndex < _alertOffsets.length) {
-        alertOffsetIndex += 1;
-      }
-    } else {
+  void adjustAlertTime(bool isCorrectGuess, bool isHintShown) {
+    if (isCorrectGuess == false) {
       if (alertOffsetIndex > 0) {
         alertOffsetIndex -= 1;
+      }
+    } else {
+      if (alertOffsetIndex < _alertOffsets.length && isHintShown == false) {
+        alertOffsetIndex += 1;
       }
     }
     alertTime = DateTime.now().add(_alertOffsets[alertOffsetIndex]);
@@ -59,4 +59,15 @@ class Flashcard {
 
     return representation;
   }
+}
+
+class FlashcardGuess {
+  Flashcard flashcard;
+  List<String> guessFields;
+  bool isHintShown;
+  FlashcardGuess({
+    required this.flashcard,
+    required this.guessFields,
+    required this.isHintShown,
+  });
 }

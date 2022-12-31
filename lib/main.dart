@@ -1,14 +1,14 @@
-import 'package:flashcards/models/user.dart';
-import 'package:flashcards/views/flashcard.dart';
 import 'package:flashcards/models/flashcard.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flashcards/models/user.dart';
 import 'package:flashcards/models/user_manager.dart';
+import 'package:flashcards/views/flashcard.dart';
 import 'package:flashcards/views/styled_widgets.dart';
 import 'package:flashcards/views/user.dart';
 import 'package:flashcards/views/user_manager_view.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:isar/isar.dart';
+import 'package:provider/provider.dart';
 
 // void main() async {
 //   Isar isarInstance = Isar.openSync([UserSchema]);

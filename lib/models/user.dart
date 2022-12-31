@@ -83,25 +83,29 @@ class User extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool checkFlashcardGuess(Flashcard flashcard, List<String> guessFields) {
-    if (guessFields.length != flashcard.hidden.length) {
+  bool checkFlashcardGuess(FlashcardGuess flashcardGuess) {
+    if (flashcardGuess.guessFields.length !=
+        flashcardGuess.flashcard.hidden.length) {
       throw FlashcardCheckException(
           cause: "guessFields.length does not match flashcard.hidden.length");
     }
 
     bool isCorrectGuess = true;
 
-    for (int i = 0; i < guessFields.length; i++) {
-      if (guessFields[i] != flashcard.hidden[i]) {
+    for (int i = 0; i < flashcardGuess.guessFields.length; i++) {
+      if (flashcardGuess.guessFields[i] != flashcardGuess.flashcard.hidden[i]) {
         isCorrectGuess = false;
         break;
       }
     }
 
-    flashcard.adjustAlertTime(isCorrectGuess);
+    flashcardGuess.flashcard
+        .adjustAlertTime(isCorrectGuess, flashcardGuess.isHintShown);
+
     isarInstance.writeTxnSync(() {
-      return isarInstance.flashcards.putSync(flashcard);
+      return isarInstance.flashcards.putSync(flashcardGuess.flashcard);
     });
+
     sortFlashcards();
     notifyListeners();
     return isCorrectGuess;
