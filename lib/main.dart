@@ -10,13 +10,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:isar/isar.dart';
 import 'package:provider/provider.dart';
 
-// void main() async {
-//   Isar isarInstance = Isar.openSync([UserSchema]);
-//   runApp(Flashcards(
-//     isarInstance: isarInstance,
-//   ));
-// }
-
 void main() {
   Isar isarInstance =
       Isar.openSync([FlashcardSchema, PersistentUserDataSchema]);
@@ -69,14 +62,6 @@ class MyMaterialApp extends StatelessWidget {
         textTheme: TextTheme(bodyText1: GoogleFonts.roboto(fontSize: 18.0)),
       ),
       title: 'Flashcards',
-      routes: {
-        '/create_user': (context) => const UserRegisterView(),
-        '/login_user': (context) => const UserLoginView(),
-        '/delete_user': (context) => const UserDeleteView(),
-        '/user_manager_view': (context) => const UserManagerView(),
-        '/add_flashcard': (context) => const AddFlashcardView(),
-        '/user_card_list_view': (context) => const UserCardListView(),
-      },
       home: home,
     );
   }
@@ -126,13 +111,14 @@ class HomePage extends StatelessWidget {
     return Column(children: [
       TextButton(
         onPressed: () {
-          Navigator.of(context).pushNamed('/user_manager_view');
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const UserManagerView()));
         },
         child: StyledText(context.watch<UserManager>().currentUser!.name),
       ),
       const UserFlashcardsView(),
       const Divider(),
-      const UserCardListView(),
+      const UserDebugFlashcardListView(),
     ]);
   }
 }

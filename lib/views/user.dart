@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flashcards/views/styled_widgets.dart';
 import 'package:flashcards/models/user_manager.dart';
 import 'package:provider/provider.dart';
-import 'package:collection/collection.dart';
 
 class _UserFieldsView extends StatefulWidget {
   final void Function(BuildContext, String, int)? handleUserInput;
@@ -164,32 +163,10 @@ class UserFlashcardsView extends StatelessWidget {
                   final buttonBackgroundColor = Colors
                           .primaries[(index * index) % Colors.primaries.length]
                       [((index + 1) * 100) % 700];
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          elevation: 0.0,
-                          backgroundColor: buttonBackgroundColor,
-                          shape: const BeveledRectangleBorder(
-                              borderRadius: BorderRadius.zero)),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: ((context) {
-                              return CheckFlashcardView(
-                                flashcard: flashcard,
-                              );
-                            }),
-                          ),
-                        );
-                      },
-                      child: Column(children: [
-                        StyledText(flashcard.name),
-                        StyledText(
-                            "Review ${flashcard.getFormattedTimeTillALert(currentTime)}"),
-                      ]),
-                    ),
-                  );
+                  return FlashcardView(
+                      buttonBackgroundColor: buttonBackgroundColor,
+                      flashcard: flashcard,
+                      currentTime: currentTime);
                 },
               ),
             ),
@@ -209,15 +186,16 @@ class _AddFlashcardButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return MainButtonStyle(
       onPressed: () {
-        Navigator.of(context).pushNamed('/add_flashcard');
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const AddFlashcardView()));
       },
       child: const StyledText("Add Flashcard"),
     );
   }
 }
 
-class UserCardListView extends StatelessWidget {
-  const UserCardListView({super.key});
+class UserDebugFlashcardListView extends StatelessWidget {
+  const UserDebugFlashcardListView({super.key});
   @override
   Widget build(BuildContext context) {
     final flashcards = context.watch<User>().flashcards;
@@ -228,63 +206,8 @@ class UserCardListView extends StatelessWidget {
         itemCount: flashcards.length,
         itemBuilder: ((context, index) {
           final card = flashcards[index];
-          return CardView(card: card, index: index);
+          return DebugFlashcardView(card: card, index: index);
         }),
-      ),
-    );
-  }
-}
-
-class CardView extends StatelessWidget {
-  const CardView({
-    Key? key,
-    required this.card,
-    required this.index,
-  }) : super(key: key);
-
-  final Flashcard card;
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        color: Colors.lightBlue[(index + 1) * 50],
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              const StyledText("name: "),
-              card.hint != null ? const StyledText("hint: ") : Container(),
-              Column(
-                children: card.hidden
-                    .mapIndexed(
-                      (i, e) => StyledText("hidden field #${i + 1}: "),
-                    )
-                    .toList(),
-              ),
-              const StyledText("created: "),
-              const StyledText("due: "),
-              const StyledText("next alert in: "),
-              const StyledText("id: "),
-            ]),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              StyledText(card.name),
-              card.hint != null ? StyledText(card.hint!) : Container(),
-              Column(
-                children: card.hidden
-                    .map(
-                      (e) => StyledText(e),
-                    )
-                    .toList(),
-              ),
-              StyledText(card.created.toString()),
-              StyledText(card.alertTime.toString()),
-              StyledText(card.alertTime.difference(card.created).toString()),
-            ]),
-          ],
-        ),
       ),
     );
   }

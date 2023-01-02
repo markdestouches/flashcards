@@ -1,10 +1,8 @@
 import 'package:flashcards/models/user.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flashcards/models/user_manager.dart';
 import 'package:flashcards/views/styled_widgets.dart';
-import 'package:flashcards/views/user.dart';
-import 'package:flashcards/views/user_manager_view.dart';
 
 import '../models/flashcard.dart';
 
@@ -196,6 +194,104 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
               },
               child: const StyledText("Check"),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FlashcardView extends StatelessWidget {
+  const FlashcardView({
+    Key? key,
+    required this.buttonBackgroundColor,
+    required this.flashcard,
+    required this.currentTime,
+  }) : super(key: key);
+
+  final Color? buttonBackgroundColor;
+  final Flashcard flashcard;
+  final DateTime currentTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            elevation: 0.0,
+            backgroundColor: buttonBackgroundColor,
+            shape:
+                const BeveledRectangleBorder(borderRadius: BorderRadius.zero)),
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: ((context) {
+                return CheckFlashcardView(
+                  flashcard: flashcard,
+                );
+              }),
+            ),
+          );
+        },
+        child: Column(children: [
+          StyledText(flashcard.name),
+          StyledText(
+              "Review ${flashcard.getFormattedTimeTillALert(currentTime)}"),
+        ]),
+      ),
+    );
+  }
+}
+
+class DebugFlashcardView extends StatelessWidget {
+  const DebugFlashcardView({
+    Key? key,
+    required this.card,
+    required this.index,
+  }) : super(key: key);
+
+  final Flashcard card;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        color: Colors.lightBlue[(index + 1) * 50],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              const StyledText("name: "),
+              card.hint != null ? const StyledText("hint: ") : Container(),
+              Column(
+                children: card.hidden
+                    .mapIndexed(
+                      (i, e) => StyledText("hidden field #${i + 1}: "),
+                    )
+                    .toList(),
+              ),
+              const StyledText("created: "),
+              const StyledText("due: "),
+              const StyledText("next alert in: "),
+              const StyledText("id: "),
+            ]),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              StyledText(card.name),
+              card.hint != null ? StyledText(card.hint!) : Container(),
+              Column(
+                children: card.hidden
+                    .map(
+                      (e) => StyledText(e),
+                    )
+                    .toList(),
+              ),
+              StyledText(card.created.toString()),
+              StyledText(card.alertTime.toString()),
+              StyledText(card.alertTime.difference(card.created).toString()),
+            ]),
           ],
         ),
       ),

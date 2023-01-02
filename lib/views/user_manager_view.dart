@@ -1,3 +1,4 @@
+import 'package:flashcards/views/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flashcards/models/user_manager.dart';
@@ -26,21 +27,24 @@ class UserManagerView extends StatelessWidget {
       MainButtonStyle(
         onPressed: userCount > 0
             ? () {
-                Navigator.of(context).pushNamed('/login_user');
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const UserLoginView()));
               }
             : () {},
         child: const StyledText("Change User"),
       ),
       MainButtonStyle(
         onPressed: () {
-          Navigator.of(context).pushNamed('/create_user');
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => const UserRegisterView()));
         },
         child: const StyledText("Create User"),
       ),
       MainButtonStyle(
         onPressed: userCount > 0
             ? () {
-                Navigator.of(context).pushNamed('/delete_user');
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const UserDeleteView()));
               }
             : () {},
         child: const StyledText("Delete User"),
