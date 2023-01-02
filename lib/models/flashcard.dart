@@ -3,12 +3,25 @@ import 'package:isar/isar.dart';
 
 part 'flashcard.g.dart';
 
-const List<Duration> _alertOffsets = [
+const List<Duration> _alertOffsets = _properAlertOffsets;
+
+const List<Duration> _shortAlertOffsets = [
   Duration(seconds: 5),
   Duration(seconds: 10),
   Duration(seconds: 30),
   Duration(seconds: 60),
   Duration(seconds: 360),
+];
+
+const List<Duration> _properAlertOffsets = [
+  Duration(seconds: 5),
+  Duration(minutes: 2),
+  Duration(minutes: 10),
+  Duration(hours: 1),
+  Duration(hours: 5),
+  Duration(days: 1),
+  Duration(days: 25),
+  Duration(days: 120),
 ];
 
 @collection
