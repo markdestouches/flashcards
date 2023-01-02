@@ -54,7 +54,25 @@ class Flashcard {
     alertTime = DateTime.now().add(_alertOffsets[alertOffsetIndex]);
   }
 
-  @override
+  String getFormattedTimeTillALert(DateTime currentTime) {
+    final timeTillNextAlert = alertTime.difference(currentTime);
+    String formattedAlertTime;
+    if (timeTillNextAlert < const Duration(seconds: 1)) {
+      formattedAlertTime = "now";
+    } else if (timeTillNextAlert < const Duration(minutes: 1)) {
+      formattedAlertTime = "in ${1 + timeTillNextAlert.inSeconds} second(s)";
+    } else if (timeTillNextAlert < const Duration(hours: 1)) {
+      formattedAlertTime = "in ${1 + timeTillNextAlert.inMinutes} minutes(s)";
+    } else if (timeTillNextAlert < const Duration(days: 1)) {
+      formattedAlertTime = "in ${1 + timeTillNextAlert.inHours} hour(s)";
+    } else if (timeTillNextAlert < const Duration(days: 30)) {
+      formattedAlertTime = "in ${1 + timeTillNextAlert.inDays} day(s)";
+    } else {
+      formattedAlertTime = "in ${1 + timeTillNextAlert.inDays / 30} month(s)";
+    }
+    return formattedAlertTime;
+  }
+
   String toString() {
     String representation = "name: $name\n}";
 

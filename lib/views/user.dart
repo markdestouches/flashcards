@@ -161,9 +161,6 @@ class UserFlashcardsView extends StatelessWidget {
                 itemCount: flashcards.length,
                 itemBuilder: (context, index) {
                   final flashcard = flashcards[index];
-                  int timeTillAlert =
-                      flashcard.alertTime.difference(currentTime).inSeconds;
-                  timeTillAlert = timeTillAlert >= 0 ? timeTillAlert : 0;
                   final buttonBackgroundColor = Colors
                           .primaries[(index * index) % Colors.primaries.length]
                       [((index + 1) * 100) % 700];
@@ -188,7 +185,8 @@ class UserFlashcardsView extends StatelessWidget {
                       },
                       child: Column(children: [
                         StyledText(flashcard.name),
-                        StyledText("Next Alert In: $timeTillAlert"),
+                        StyledText(
+                            "Review ${flashcard.getFormattedTimeTillALert(currentTime)}"),
                       ]),
                     ),
                   );
