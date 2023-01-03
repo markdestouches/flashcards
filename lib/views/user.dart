@@ -6,6 +6,27 @@ import 'package:flashcards/views/styled_widgets.dart';
 import 'package:flashcards/models/user_manager.dart';
 import 'package:provider/provider.dart';
 
+const List<Color> flashcardColors = [
+  // Russian Violet
+  Color(0xff0B0033),
+  // Russian Violet
+  Color(0xff210032),
+  // Dark Purple
+  Color(0xff370031),
+  // Tyrian Purple
+  Color(0xff5D1132),
+  // Antique Ruby
+  Color(0xff832232),
+  // Redwood
+  Color(0xffA9564B),
+  // Copper Crayola
+  Color(0xffCE8964),
+  // Antique Brass
+  Color(0xffD29472),
+  // Middle Yellow
+  Color(0xffFFEB3B),
+];
+
 class _UserFieldsView extends StatefulWidget {
   final void Function(BuildContext, String, int)? handleUserInput;
   final String submitButtonText;
@@ -150,23 +171,34 @@ class UserFlashcardsView extends StatelessWidget {
       child: Builder(builder: (context) {
         final currentTime = context.watch<CurrentTime>().value;
         return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const _AddFlashcardButton(),
             SizedBox(
-              width: 300,
               height: 300,
+              width: 500,
               child: ListView.builder(
+                scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 itemCount: flashcards.length,
                 itemBuilder: (context, index) {
                   final flashcard = flashcards[index];
-                  final buttonBackgroundColor = Colors
-                          .primaries[(index * index) % Colors.primaries.length]
-                      [((index + 1) * 100) % 700];
-                  return FlashcardView(
-                      buttonBackgroundColor: buttonBackgroundColor,
-                      flashcard: flashcard,
-                      currentTime: currentTime);
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Dismissible(
+                      direction: DismissDirection.endToStart,
+                      key: Key(flashcard.id.toString()),
+                      background: Container(color: Colors.red),
+                      onDismissed: (direction) {
+                        context.read<User>().removeFlashcardAt(index);
+                      },
+                      child: FlashcardView(
+                          buttonBackgroundColor: Colors.primaries[
+                              flashcard.id % Colors.primaries.length],
+                          flashcard: flashcard,
+                          currentTime: currentTime),
+                    ),
+                  );
                 },
               ),
             ),

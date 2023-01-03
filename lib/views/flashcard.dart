@@ -187,10 +187,24 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
 
                 final result =
                     context.read<User>().checkFlashcardGuess(flashcardGuess);
-                AlertDialog(
-                  title: StyledText(result == true ? "Correct" : "Incorrect"),
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                        content: StyledText(
+                            result == true ? "Correct" : "Incorrect"),
+                        actions: [
+                          ElevatedButton(
+                            autofocus: true,
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
+                            },
+                            child: const StyledText("ok"),
+                          ),
+                        ]);
+                  },
                 );
-                Navigator.of(context).pop();
               },
               child: const StyledText("Check"),
             ),
@@ -215,30 +229,41 @@ class FlashcardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            elevation: 0.0,
-            backgroundColor: buttonBackgroundColor,
-            shape:
-                const BeveledRectangleBorder(borderRadius: BorderRadius.zero)),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: ((context) {
-                return CheckFlashcardView(
-                  flashcard: flashcard,
-                );
-              }),
-            ),
-          );
-        },
-        child: Column(children: [
-          StyledText(flashcard.name),
-          StyledText(
-              "Review ${flashcard.getFormattedTimeTillALert(currentTime)}"),
-        ]),
+    final bool isTimeToReview = flashcard.alertTime.compareTo(currentTime) <= 0;
+    final Color textColor = buttonBackgroundColor!.computeLuminance() > 0.5
+        ? Colors.black
+        : Colors.white;
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+          elevation: 0.0,
+          backgroundColor: buttonBackgroundColor,
+          shape: const BeveledRectangleBorder(borderRadius: BorderRadius.zero)),
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: ((context) {
+              return CheckFlashcardView(
+                flashcard: flashcard,
+              );
+            }),
+          ),
+        );
+      },
+      child: ListTile(
+        leading: isTimeToReview
+            ? Icon(Icons.warning, color: textColor)
+            : const SizedBox(width: 0, height: 0),
+        title: Text(
+          flashcard.name,
+          style: TextStyle(
+            color: textColor,
+          ),
+        ),
+        subtitle: Text(
+          "Review ${flashcard.getFormattedTimeTillALert(currentTime)}",
+          style: TextStyle(
+              color: textColor, fontSize: 15, fontWeight: FontWeight.w500),
+        ),
       ),
     );
   }

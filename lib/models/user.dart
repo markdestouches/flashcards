@@ -68,6 +68,18 @@ class User extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeFlashcardAt(int index) {
+    final flashcard = flashcards[index];
+    flashcards.removeAt(index);
+    persistentUserData.flashcardLinks.remove(flashcard);
+    isarInstance.writeTxnSync(() {
+      persistentUserData.flashcardLinks.updateSync(unlink: [flashcard]);
+      isarInstance.flashcards.deleteSync(flashcard.id);
+      persistentUserData.flashcardLinks.saveSync();
+    });
+    notifyListeners();
+  }
+
   // void addAllFlashcards(Iterable<Flashcard> iterableFlashcards) {
   //   flashcards.addAll(iterableFlashcards);
   //   sortFlashcards();

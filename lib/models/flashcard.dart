@@ -62,7 +62,7 @@ class Flashcard {
     } else if (timeTillNextAlert < const Duration(minutes: 1)) {
       formattedAlertTime = "in ${1 + timeTillNextAlert.inSeconds} second(s)";
     } else if (timeTillNextAlert < const Duration(hours: 1)) {
-      formattedAlertTime = "in ${1 + timeTillNextAlert.inMinutes} minutes(s)";
+      formattedAlertTime = "in ${1 + timeTillNextAlert.inMinutes} minute(s)";
     } else if (timeTillNextAlert < const Duration(days: 1)) {
       formattedAlertTime = "in ${1 + timeTillNextAlert.inHours} hour(s)";
     } else if (timeTillNextAlert < const Duration(days: 30)) {

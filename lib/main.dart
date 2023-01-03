@@ -1,10 +1,10 @@
 import 'package:flashcards/models/flashcard.dart';
 import 'package:flashcards/models/user.dart';
 import 'package:flashcards/models/user_manager.dart';
-import 'package:flashcards/views/flashcard.dart';
 import 'package:flashcards/views/styled_widgets.dart';
 import 'package:flashcards/views/user.dart';
 import 'package:flashcards/views/user_manager_view.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:isar/isar.dart';
@@ -108,17 +108,33 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      TextButton(
-        onPressed: () {
-          Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const UserManagerView()));
-        },
-        child: StyledText(context.watch<UserManager>().currentUser!.name),
-      ),
-      const UserFlashcardsView(),
-      const Divider(),
-      const UserDebugFlashcardListView(),
-    ]);
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(children: [
+        ElevatedButton(
+          style: ButtonStyle(elevation:
+              MaterialStateProperty.resolveWith<double?>(
+                  (Set<MaterialState> states) {
+            if (states.contains(MaterialState.hovered)) {
+              return 0;
+            } else {
+              return 0;
+            }
+          }), backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+            (states) {
+              return Colors.transparent;
+            },
+          )),
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => const UserManagerView()));
+          },
+          child: StyledText(context.watch<UserManager>().currentUser!.name),
+        ),
+        const UserFlashcardsView(),
+        const Divider(),
+        kDebugMode ? const UserDebugFlashcardListView() : Container(),
+      ]),
+    );
   }
 }
