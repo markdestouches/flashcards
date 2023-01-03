@@ -137,11 +137,19 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
           children: [
             Container(
               alignment: Alignment.topLeft,
-              child: MainButtonStyle(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const StyledText("Back"),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  width: 150,
+                  child: ElevatedButton(
+                    onPressed: isHintShown
+                        ? null
+                        : () {
+                            Navigator.of(context).pop();
+                          },
+                    child: const StyledText("Back"),
+                  ),
+                ),
               ),
             ),
             SizedBox(
@@ -229,28 +237,32 @@ class FlashcardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isTimeToReview = flashcard.alertTime.compareTo(currentTime) <= 0;
-    final Color textColor = buttonBackgroundColor!.computeLuminance() > 0.5
-        ? Colors.black
-        : Colors.white;
+    final flashcardAlertState = flashcard.getAlertState(currentTime);
+    final Color textColor =
+        flashcardAlertState == FlashcardAlertState.reviewLocked ||
+                buttonBackgroundColor!.computeLuminance() > 0.5
+            ? Colors.black
+            : Colors.white;
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
           elevation: 0.0,
           backgroundColor: buttonBackgroundColor,
           shape: const BeveledRectangleBorder(borderRadius: BorderRadius.zero)),
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: ((context) {
-              return CheckFlashcardView(
-                flashcard: flashcard,
+      onPressed: flashcardAlertState == FlashcardAlertState.reviewLocked
+          ? null
+          : () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: ((context) {
+                    return CheckFlashcardView(
+                      flashcard: flashcard,
+                    );
+                  }),
+                ),
               );
-            }),
-          ),
-        );
-      },
+            },
       child: ListTile(
-        leading: isTimeToReview
+        leading: flashcardAlertState == FlashcardAlertState.triggered
             ? Icon(Icons.warning, color: textColor)
             : const SizedBox(width: 0, height: 0),
         title: Text(
