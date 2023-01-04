@@ -1,3 +1,4 @@
+import 'package:flashcards/models/flashcard.dart';
 import 'package:flashcards/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
@@ -51,16 +52,48 @@ class UserManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Hic sunt bugs [probably]
   void delete(String username, int passHash) {
-    final bool txResult = isarInstance.writeTxnSync(() {
+    final PersistentUserData? persistentUserDataToDelete =
+        isarInstance.writeTxnSync(() {
       return isarInstance
-          .collection<User>()
-          .deleteSync(_genUserId(username, passHash));
+          .collection<PersistentUserData>()
+          .getSync(_genUserId(username, passHash));
     });
-    if (txResult == false) {
+
+    if (persistentUserDataToDelete == null) {
       throw UserOperationException(
-          "User $username could not be deleted. Possibly, this user does not exist");
+          "Deletion failed: User \"$username\" is not found.");
     }
+
+    // This assumes only logged in users can delete users
+    if (persistentUserDataToDelete.id == currentUser!.persistentUserData.id) {
+      currentUser = null;
+    }
+
+    final bool isDeleted = isarInstance.writeTxnSync(
+      () {
+        for (Flashcard f in persistentUserDataToDelete.flashcardLinks) {
+          if (isarInstance.collection<Flashcard>().deleteSync(f.id) != true) {
+            return false;
+          }
+        }
+        persistentUserDataToDelete.flashcardLinks.resetSync();
+        if (isarInstance
+                .collection<PersistentUserData>()
+                .deleteSync(persistentUserDataToDelete.id) !=
+            true) {
+          return false;
+        }
+        return true;
+      },
+    );
+
+    if (!isDeleted) {
+      throw UserOperationException(
+          "Deletion failed: User \"$username\" could not be deleted. Perhaps some of this user's flashcards failed to delete");
+    }
+
     _userCount -= 1;
     notifyListeners();
   }
@@ -72,6 +105,8 @@ class UserManager extends ChangeNotifier {
           .putSync(user.persistentUserData);
     });
   }
+
+  void clearFlashcards() {}
 
   void saveCurrentUser() {
     return save(currentUser!);
