@@ -6,13 +6,18 @@ import 'package:flashcards/views/styled_widgets.dart';
 
 import '../models/flashcard.dart';
 
-String? validateInput(String? value) {
+String? validateCharLimit(String? value, int upperLimit, [int lowerLimit = 1]) {
+  if (lowerLimit > upperLimit || upperLimit < 1) {
+    throw "Invalid input limits set for input validation";
+  }
+  final String lowerLimitString = lowerLimit == 1 ? "character" : "characters";
+  final String upperLimitString = upperLimit == 1 ? "character" : "characters";
   if (value == null) {
-    return "Enter at least 1 character";
-  } else if (value.isEmpty) {
-    return "Enter at least 1 character";
-  } else if (value.length > 50) {
-    return "Your input is too long";
+    return "Enter at least $lowerLimit $lowerLimitString";
+  } else if (value.length < lowerLimit) {
+    return "Enter at least $lowerLimit $lowerLimitString";
+  } else if (value.length > upperLimit) {
+    return "Your input must not exceed $upperLimit $upperLimitString";
   } else {
     return null;
   }
@@ -26,6 +31,7 @@ class AddFlashcardView extends StatefulWidget {
 }
 
 class _AddFlashcardViewState extends State<AddFlashcardView> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _hintController = TextEditingController();
   final List<TextEditingController> _hiddenFieldControllers = [
@@ -36,79 +42,101 @@ class _AddFlashcardViewState extends State<AddFlashcardView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SizedBox.expand(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              alignment: Alignment.topLeft,
-              child: MainButtonStyle(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                alignment: Alignment.topCenter,
+                child: MainButtonStyle(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const StyledText("Back"),
+                ),
+              ),
+              SizedBox(
+                width: 300,
+                child: TextFormField(
+                  autofocus: true,
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: "Visible"),
+                  validator: (value) => validateCharLimit(value, 25),
+                ),
+              ),
+              SizedBox(
+                width: 300,
+                child: TextFormField(
+                  autofocus: true,
+                  controller: _hintController,
+                  decoration: const InputDecoration(labelText: "Hint"),
+                  validator: (value) => validateCharLimit(value, 75, 0),
+                ),
+              ),
+              SizedBox(
+                width: 300,
+                child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: _hiddenFieldControllers.length,
+                  itemBuilder: ((context, index) {
+                    return TextFormField(
+                      controller: _hiddenFieldControllers[index],
+                      decoration:
+                          InputDecoration(labelText: "Hidden #${index + 1}"),
+                      validator: (value) => validateCharLimit(value, 25),
+                    );
+                  }),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    splashRadius: 15.0,
+                    icon: const Icon(Icons.add),
+                    onPressed: () {
+                      setState(() {
+                        _hiddenFieldControllers.add(TextEditingController());
+                      });
+                    },
+                  ),
+                  _hiddenFieldControllers.length > 1
+                      ? IconButton(
+                          splashRadius: 15.0,
+                          icon: const Icon(Icons.remove),
+                          onPressed: () {
+                            setState(() {
+                              _hiddenFieldControllers.removeLast();
+                            });
+                          },
+                        )
+                      : Container(),
+                ],
+              ),
+              MainButtonStyle(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  if (_formKey.currentState!.validate()) {
+                    final flashcard = Flashcard(
+                      name: _nameController.text,
+                      hint: _hintController.text.isNotEmpty
+                          ? _hintController.text
+                          : null,
+                      hidden: _hiddenFieldControllers
+                          .map(
+                            (e) => e.text,
+                          )
+                          .toList(),
+                    );
+                    context.read<User>().addFlashcard(flashcard);
+                    Navigator.of(context).pop();
+                  }
                 },
-                child: const StyledText("Back"),
-              ),
-            ),
-            SizedBox(
-              width: 300,
-              child: TextFormField(
-                autofocus: true,
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: "Visible"),
-                validator: validateInput,
-              ),
-            ),
-            SizedBox(
-              width: 300,
-              child: TextFormField(
-                autofocus: true,
-                controller: _hintController,
-                decoration: const InputDecoration(labelText: "Hint"),
-                validator: validateInput,
-              ),
-            ),
-            SizedBox(
-              width: 300,
-              child: ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: _hiddenFieldControllers.length,
-                itemBuilder: ((context, index) {
-                  return TextFormField(
-                    controller: _hiddenFieldControllers[index],
-                    decoration:
-                        InputDecoration(labelText: "Hidden #${index + 1}"),
-                    validator: validateInput,
-                  );
-                }),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
-                setState(() {
-                  _hiddenFieldControllers.add(TextEditingController());
-                });
-              },
-            ),
-            MainButtonStyle(
-              onPressed: () {
-                final flashcard = Flashcard(
-                  name: _nameController.text,
-                  hint: _hintController.text.isNotEmpty
-                      ? _hintController.text
-                      : null,
-                  hidden: _hiddenFieldControllers
-                      .map(
-                        (e) => e.text,
-                      )
-                      .toList(),
-                );
-                context.read<User>().addFlashcard(flashcard);
-                Navigator.of(context).pop();
-              },
-              child: const StyledText("Submit"),
-            )
-          ],
+                child: const StyledText("Submit"),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -131,47 +159,48 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
     final controllers = List<TextEditingController>.generate(
         widget.flashcard.hidden.length, (_) => TextEditingController());
     return Scaffold(
-      body: SizedBox.expand(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SizedBox(
-                  width: 150,
-                  child: ElevatedButton(
-                    onPressed: isHintShown
-                        ? null
-                        : () {
-                            Navigator.of(context).pop();
-                          },
-                    child: const StyledText("Back"),
+      body: Container(
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: 300,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: 150,
+                    child: ElevatedButton(
+                      onPressed: isHintShown
+                          ? null
+                          : () {
+                              Navigator.of(context).pop();
+                            },
+                      child: const StyledText("Back"),
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(
-              width: 300,
-              child: StyledText("Check flashcard: ${widget.flashcard.name}"),
-            ),
-            widget.flashcard.hint != null
-                ? isHintShown
-                    ? StyledText(widget.flashcard.hint!)
-                    : MainButtonStyle(
-                        onPressed: () {
-                          setState(
-                            () {
-                              isHintShown = true;
-                            },
-                          );
-                        },
-                        child: const StyledText('Show hint'))
-                : Container(),
-            SizedBox(
-              width: 300,
-              child: ListView.builder(
+              StyledText(
+                widget.flashcard.name,
+              ),
+              widget.flashcard.hint != null
+                  ? isHintShown
+                      ? Text("Hint: ${widget.flashcard.hint!}",
+                          style: const TextStyle(fontSize: 16))
+                      : MainButtonStyle(
+                          onPressed: () {
+                            setState(
+                              () {
+                                isHintShown = true;
+                              },
+                            );
+                          },
+                          child: const StyledText('Show Hint'))
+                  : Container(),
+              ListView.builder(
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 itemCount: controllers.length,
@@ -180,43 +209,43 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
                     controller: controllers[index],
                     decoration:
                         InputDecoration(labelText: "Hidden #${index + 1}"),
-                    validator: validateInput,
+                    validator: (value) => validateCharLimit(value, 25),
                   );
                 }),
               ),
-            ),
-            MainButtonStyle(
-              onPressed: () {
-                final FlashcardGuess flashcardGuess = FlashcardGuess(
-                  flashcard: widget.flashcard,
-                  guessFields: controllers.map((e) => e.text).toList(),
-                  isHintShown: isHintShown,
-                );
+              MainButtonStyle(
+                onPressed: () {
+                  final FlashcardGuess flashcardGuess = FlashcardGuess(
+                    flashcard: widget.flashcard,
+                    guessFields: controllers.map((e) => e.text).toList(),
+                    isHintShown: isHintShown,
+                  );
 
-                final result =
-                    context.read<User>().checkFlashcardGuess(flashcardGuess);
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                        content: StyledText(
-                            result == true ? "Correct" : "Incorrect"),
-                        actions: [
-                          ElevatedButton(
-                            autofocus: true,
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              Navigator.of(context).pop();
-                            },
-                            child: const StyledText("ok"),
-                          ),
-                        ]);
-                  },
-                );
-              },
-              child: const StyledText("Check"),
-            ),
-          ],
+                  final result =
+                      context.read<User>().checkFlashcardGuess(flashcardGuess);
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                          content: StyledText(
+                              result == true ? "Correct" : "Incorrect"),
+                          actions: [
+                            ElevatedButton(
+                              autofocus: true,
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
+                              },
+                              child: const StyledText("ok"),
+                            ),
+                          ]);
+                    },
+                  );
+                },
+                child: const StyledText("Check"),
+              ),
+            ],
+          ),
         ),
       ),
     );

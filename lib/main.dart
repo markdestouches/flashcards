@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:isar/isar.dart';
 import 'package:provider/provider.dart';
+import 'package:desktop_window/desktop_window.dart';
 
 void main() {
   Isar isarInstance =
@@ -131,9 +132,10 @@ class HomePage extends StatelessWidget {
           },
           child: StyledText(context.watch<UserManager>().currentUser!.name),
         ),
-        const UserFlashcardsView(),
-        const Divider(),
-        kDebugMode ? const UserDebugFlashcardListView() : Container(),
+        const UserFlashcardListView(),
+
+        // const Divider(),
+        // kDebugMode ? const UserDebugFlashcardListView() : Container(),
       ]),
     );
   }

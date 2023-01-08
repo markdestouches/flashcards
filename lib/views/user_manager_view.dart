@@ -15,7 +15,7 @@ class UserManagerView extends StatelessWidget {
 
     return Column(children: [
       Container(
-        alignment: Alignment.topLeft,
+        alignment: Alignment.topCenter,
         child: MainButtonStyle(
           onPressed: () {
             Navigator.of(context).pop();
@@ -23,6 +23,7 @@ class UserManagerView extends StatelessWidget {
           child: const StyledText("Back"),
         ),
       ),
+      const SizedBox(width: 150, child: Divider()),
       StyledText(context.watch<UserManager>().currentUser!.name),
       MainButtonStyle(
         onPressed: userCount > 0

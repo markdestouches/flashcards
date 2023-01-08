@@ -6,38 +6,17 @@ import 'package:flashcards/views/styled_widgets.dart';
 import 'package:flashcards/models/user_manager.dart';
 import 'package:provider/provider.dart';
 
-const List<Color> flashcardColors = [
-  // Russian Violet
-  Color(0xff0B0033),
-  // Russian Violet
-  Color(0xff210032),
-  // Dark Purple
-  Color(0xff370031),
-  // Tyrian Purple
-  Color(0xff5D1132),
-  // Antique Ruby
-  Color(0xff832232),
-  // Redwood
-  Color(0xffA9564B),
-  // Copper Crayola
-  Color(0xffCE8964),
-  // Antique Brass
-  Color(0xffD29472),
-  // Middle Yellow
-  Color(0xffFFEB3B),
-];
-
 class _UserFieldsView extends StatefulWidget {
   final void Function(BuildContext, String, int)? handleUserInput;
   final String submitButtonText;
-  const _UserFieldsView(
-      {required this.submitButtonText, this.handleUserInput, super.key});
+  const _UserFieldsView({required this.submitButtonText, this.handleUserInput});
 
   @override
   State<_UserFieldsView> createState() => _UserFieldsViewState();
 }
 
 class _UserFieldsViewState extends State<_UserFieldsView> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -51,52 +30,59 @@ class _UserFieldsViewState extends State<_UserFieldsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            alignment: Alignment.topLeft,
-            child: ElevatedButton(
+      body: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              alignment: Alignment.topCenter,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const StyledText('Back'),
+              ),
+            ),
+            SizedBox(
+              width: 300,
+              child: TextFormField(
+                controller: _usernameController,
+                validator: (value) => validateCharLimit(value, 25),
+                autofocus: true,
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.person),
+                  labelText: 'Username',
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 300,
+              child: TextFormField(
+                controller: _passwordController,
+                validator: (value) => validateCharLimit(value, 25, 5),
+                autofocus: true,
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.lock),
+                  labelText: 'Password',
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                if (_formKey.currentState!.validate()) {
+                  final String username = _usernameController.text;
+                  final int passHash = _passwordController.text.hashCode;
+                  widget.handleUserInput?.call(context, username, passHash);
+                }
               },
-              child: const StyledText('Back'),
+              child: StyledText(widget.submitButtonText),
             ),
-          ),
-          SizedBox(
-            width: 250,
-            child: TextField(
-              controller: _usernameController,
-              autofocus: true,
-              decoration: const InputDecoration(
-                icon: Icon(Icons.person),
-                labelText: 'Username',
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 250,
-            child: TextField(
-              controller: _passwordController,
-              autofocus: true,
-              decoration: const InputDecoration(
-                icon: Icon(Icons.lock),
-                labelText: 'Password',
-              ),
-            ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final String username = _usernameController.text;
-              final int passHash = _passwordController.text.hashCode;
-              widget.handleUserInput?.call(context, username, passHash);
-            },
-            child: StyledText(widget.submitButtonText),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -111,7 +97,6 @@ class UserRegisterView extends StatelessWidget {
       submitButtonText: "Create",
       handleUserInput: (context, username, passHash) {
         context.read<UserManager>().create(username, passHash);
-        // Navigator.of(context).pop();
         Navigator.of(context).pop();
       },
     );
@@ -155,8 +140,8 @@ class CurrentTime {
   CurrentTime() : value = DateTime.now();
 }
 
-class UserFlashcardsView extends StatelessWidget {
-  const UserFlashcardsView({super.key});
+class UserFlashcardListView extends StatelessWidget {
+  const UserFlashcardListView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -168,43 +153,54 @@ class UserFlashcardsView extends StatelessWidget {
         const Duration(seconds: 1),
         (_) => CurrentTime(),
       ),
-      child: Builder(builder: (context) {
-        final currentTime = context.watch<CurrentTime>().value;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const _AddFlashcardButton(),
-            SizedBox(
-              height: 300,
-              width: 500,
-              child: ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: flashcards.length,
-                itemBuilder: (context, index) {
-                  final flashcard = flashcards[index];
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Dismissible(
-                      direction: DismissDirection.endToStart,
-                      key: Key(flashcard.id.toString()),
-                      background: Container(color: Colors.red),
-                      onDismissed: (direction) {
-                        context.read<User>().removeFlashcardAt(index);
-                      },
-                      child: FlashcardView(
-                          buttonBackgroundColor: Colors.primaries[
-                              flashcard.id % Colors.primaries.length],
-                          flashcard: flashcard,
-                          currentTime: currentTime),
-                    ),
-                  );
-                },
+      child: Expanded(
+        child: LayoutBuilder(builder: (context, constraints) {
+          final currentTime = context.watch<CurrentTime>().value;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8.0),
+                child: _AddFlashcardButton(),
               ),
-            ),
-          ],
-        );
-      }),
+              SizedBox(
+                height: constraints.maxHeight - 52,
+                child: FractionallySizedBox(
+                  widthFactor: 0.6,
+                  heightFactor: 1.0,
+                  // SizedBox constraint:
+                  // height: constraints.maxHeight - 52,
+                  child: ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemCount: flashcards.length,
+                    itemBuilder: (context, index) {
+                      final flashcard = flashcards[index];
+                      return Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 16.0),
+                        child: Dismissible(
+                          direction: DismissDirection.endToStart,
+                          key: Key(flashcard.id.toString()),
+                          background: Container(color: Colors.red[700]),
+                          onDismissed: (direction) {
+                            context.read<User>().removeFlashcardAt(index);
+                          },
+                          child: FlashcardView(
+                              buttonBackgroundColor: Colors.primaries[
+                                  flashcard.id % Colors.primaries.length],
+                              flashcard: flashcard,
+                              currentTime: currentTime),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
     );
   }
 }
