@@ -145,8 +145,7 @@ class UserFlashcardListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final flashcards =
-        context.select<User, List<Flashcard>>((user) => user.flashcards);
+    final flashcards = context.read<User>().flashcards;
     return StreamProvider<CurrentTime>.value(
       initialData: CurrentTime(),
       value: Stream.periodic(

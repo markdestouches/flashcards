@@ -220,7 +220,6 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
                     guessFields: controllers.map((e) => e.text).toList(),
                     isHintShown: isHintShown,
                   );
-
                   final result =
                       context.read<User>().checkFlashcardGuess(flashcardGuess);
                   showDialog(

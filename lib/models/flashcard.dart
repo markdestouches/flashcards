@@ -24,16 +24,14 @@ const List<Duration> _properAlertOffsets = [
   Duration(days: 120),
 ];
 
-// If the review lock factor is 0.8, the flashcard is meant to be locked for review
+// If the review lock factor is 0.2, the flashcard is meant to be locked for review
 // until 80% of the current alert offset duration has elapsed
-const double reviewLockFactor = 0.8;
+const double reviewLockFactor = 0.2;
 
 @collection
 class Flashcard {
   Id id = Isar.autoIncrement;
-  // must never be null; isar compatibility
   String name = "";
-  // must never be null; isar compatibility
   final List<String> hidden;
   final String? hint;
   final DateTime created;
@@ -66,8 +64,8 @@ class Flashcard {
     final diffSec = alertTime.difference(currentTime).inSeconds;
     if (diffSec <= 0) {
       return FlashcardAlertState.triggered;
-    } else if (diffSec < 0 &&
-        diffSec / getFullAlertDelayDuration().inSeconds > reviewLockFactor) {
+    } else if (diffSec / getFullAlertDelayDuration().inSeconds <
+        reviewLockFactor) {
       return FlashcardAlertState.reviewUnlocked;
     } else {
       return FlashcardAlertState.reviewLocked;
@@ -80,7 +78,7 @@ class Flashcard {
     if (timeTillNextAlert < const Duration(seconds: 1)) {
       formattedAlertTime = "now";
     } else if (timeTillNextAlert < const Duration(minutes: 1)) {
-      formattedAlertTime = "in ${1 + timeTillNextAlert.inSeconds} second(s)";
+      formattedAlertTime = "in ${timeTillNextAlert.inSeconds} second(s)";
     } else if (timeTillNextAlert < const Duration(hours: 1)) {
       formattedAlertTime = "in ${1 + timeTillNextAlert.inMinutes} minute(s)";
     } else if (timeTillNextAlert < const Duration(days: 1)) {

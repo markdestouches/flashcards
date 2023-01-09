@@ -14,7 +14,7 @@ class StyledText extends StatelessWidget {
 }
 
 class MainButtonStyle extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Widget child;
   const MainButtonStyle(
       {required this.onPressed, required this.child, super.key});
