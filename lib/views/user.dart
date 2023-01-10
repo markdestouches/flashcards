@@ -252,8 +252,7 @@ class UserDebugFlashcardListView extends StatelessWidget {
         shrinkWrap: true,
         itemCount: flashcards.length,
         itemBuilder: ((context, index) {
-          final card = flashcards[index];
-          return DebugFlashcardView(card: card, index: index);
+          return DebugFlashcardView(flashcard: flashcards[index], index: index);
         }),
       ),
     );

@@ -312,11 +312,11 @@ class FlashcardView extends StatelessWidget {
 class DebugFlashcardView extends StatelessWidget {
   const DebugFlashcardView({
     Key? key,
-    required this.card,
+    required this.flashcard,
     required this.index,
   }) : super(key: key);
 
-  final Flashcard card;
+  final Flashcard flashcard;
   final int index;
 
   @override
@@ -330,9 +330,9 @@ class DebugFlashcardView extends StatelessWidget {
           children: [
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               const StyledText("name: "),
-              card.hint != null ? const StyledText("hint: ") : Container(),
+              flashcard.hint != null ? const StyledText("hint: ") : Container(),
               Column(
-                children: card.hidden
+                children: flashcard.hidden
                     .mapIndexed(
                       (i, e) => StyledText("hidden field #${i + 1}: "),
                     )
@@ -344,18 +344,21 @@ class DebugFlashcardView extends StatelessWidget {
               const StyledText("id: "),
             ]),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              StyledText(card.name),
-              card.hint != null ? StyledText(card.hint!) : Container(),
+              StyledText(flashcard.name),
+              flashcard.hint != null
+                  ? StyledText(flashcard.hint!)
+                  : Container(),
               Column(
-                children: card.hidden
+                children: flashcard.hidden
                     .map(
                       (e) => StyledText(e),
                     )
                     .toList(),
               ),
-              StyledText(card.created.toString()),
-              StyledText(card.alertTime.toString()),
-              StyledText(card.alertTime.difference(card.created).toString()),
+              StyledText(flashcard.created.toString()),
+              StyledText(flashcard.alertTime.toString()),
+              StyledText(
+                  flashcard.alertTime.difference(flashcard.created).toString()),
             ]),
           ],
         ),

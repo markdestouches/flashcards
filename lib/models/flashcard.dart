@@ -26,7 +26,7 @@ const List<Duration> _properAlertOffsets = [
 
 // If the review lock factor is 0.2, the flashcard is meant to be locked for review
 // until 80% of the current alert offset duration has elapsed
-const double reviewLockFactor = 0.2;
+const double _reviewLockFactor = 0.2;
 
 @collection
 class Flashcard {
@@ -65,7 +65,7 @@ class Flashcard {
     if (diffSec <= 0) {
       return FlashcardAlertState.triggered;
     } else if (diffSec / getFullAlertDelayDuration().inSeconds <
-        reviewLockFactor) {
+        _reviewLockFactor) {
       return FlashcardAlertState.reviewUnlocked;
     } else {
       return FlashcardAlertState.reviewLocked;
@@ -91,21 +91,18 @@ class Flashcard {
     return formattedAlertTime;
   }
 
+  @override
   String toString() {
     String representation = "name: $name\n}";
-
     if (hint != null) {
       representation += "hint: $hint\n";
     }
-
     for (int i = 0; i < hidden.length; i++) {
       representation += "#${i + 1}: ${hidden[i]}\n";
     }
-
     representation += "created: ${created.toString()}\n";
     representation += "alertTime: ${alertTime.toString()}\n";
     representation += "alertOffsetIndex: ${alertOffsetIndex.toString()}";
-
     return representation;
   }
 }
