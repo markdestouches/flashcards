@@ -25,6 +25,12 @@ class UserManager extends ChangeNotifier {
   void create(String username, int passHash) {
     PersistentUserData persistentUserData =
         PersistentUserData(name: username, id: _genUserId(username, passHash));
+    if (isarInstance.persistentUserDatas.getSync(persistentUserData.id) !=
+        null) {
+      throw UserOperationException(
+          "User \"${persistentUserData.name}\" already exists."
+          "\nChange the password if you want to create another user with the same name.");
+    }
     isarInstance.writeTxnSync(() {
       return isarInstance.persistentUserDatas.putSync(persistentUserData);
     });
@@ -42,7 +48,7 @@ class UserManager extends ChangeNotifier {
         .collection<PersistentUserData>()
         .getSync(_genUserId(username, passHash));
     if (persistentUserData == null) {
-      throw UserOperationException("User $username not found.");
+      throw UserOperationException("User \"$username\" not found.");
     }
     User user = User(
       persistentUserData: persistentUserData,
@@ -62,8 +68,7 @@ class UserManager extends ChangeNotifier {
     });
 
     if (persistentUserDataToDelete == null) {
-      throw UserOperationException(
-          "Deletion failed: User \"$username\" is not found.");
+      throw UserOperationException("User \"$username\" not found.");
     }
 
     // This assumes only logged in users can delete users
@@ -106,7 +111,9 @@ class UserManager extends ChangeNotifier {
     });
   }
 
-  void clearFlashcards() {}
+  void clearFlashcards() {
+    throw UnimplementedError();
+  }
 
   void saveCurrentUser() {
     return save(currentUser!);

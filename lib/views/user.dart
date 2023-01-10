@@ -7,9 +7,10 @@ import 'package:flashcards/models/user_manager.dart';
 import 'package:provider/provider.dart';
 
 class _UserFieldsView extends StatefulWidget {
-  final void Function(BuildContext, String, int)? handleUserInput;
+  final void Function(BuildContext, String, int) handleUserInput;
   final String submitButtonText;
-  const _UserFieldsView({required this.submitButtonText, this.handleUserInput});
+  const _UserFieldsView(
+      {required this.submitButtonText, required this.handleUserInput});
 
   @override
   State<_UserFieldsView> createState() => _UserFieldsViewState();
@@ -76,7 +77,28 @@ class _UserFieldsViewState extends State<_UserFieldsView> {
                 if (_formKey.currentState!.validate()) {
                   final String username = _usernameController.text;
                   final int passHash = _passwordController.text.hashCode;
-                  widget.handleUserInput?.call(context, username, passHash);
+                  try {
+                    widget.handleUserInput.call(context, username, passHash);
+                  } on UserOperationException catch (exception) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text("Error",
+                              style: TextStyle(fontSize: 16)),
+                          content: StyledText(exception.cause),
+                          actions: [
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const StyledText("ok"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
                 }
               },
               child: StyledText(widget.submitButtonText),
@@ -167,8 +189,6 @@ class UserFlashcardListView extends StatelessWidget {
                 child: FractionallySizedBox(
                   widthFactor: 0.6,
                   heightFactor: 1.0,
-                  // SizedBox constraint:
-                  // height: constraints.maxHeight - 52,
                   child: ListView.builder(
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
