@@ -231,7 +231,7 @@ class _AddFlashcardButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MainButtonStyle(
+    return StyledButton(
       onPressed: () {
         Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const AddFlashcardView()));

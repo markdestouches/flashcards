@@ -74,7 +74,7 @@ class UnloggedLandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      MainButtonStyle(
+      StyledButton(
         onPressed: () {
           Navigator.push(
             context,
@@ -87,7 +87,7 @@ class UnloggedLandingPage extends StatelessWidget {
         },
         child: const StyledText("Login"),
       ),
-      MainButtonStyle(
+      StyledButton(
         onPressed: () {
           Navigator.push(
             context,

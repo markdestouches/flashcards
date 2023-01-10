@@ -49,7 +49,7 @@ class _AddFlashcardViewState extends State<AddFlashcardView> {
             children: [
               Container(
                 alignment: Alignment.topCenter,
-                child: MainButtonStyle(
+                child: StyledButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -115,7 +115,7 @@ class _AddFlashcardViewState extends State<AddFlashcardView> {
                       : Container(),
                 ],
               ),
-              MainButtonStyle(
+              StyledButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     final flashcard = Flashcard(
@@ -190,7 +190,7 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
                   ? isHintShown
                       ? Text("Hint: ${widget.flashcard.hint!}",
                           style: const TextStyle(fontSize: 16))
-                      : MainButtonStyle(
+                      : StyledButton(
                           onPressed: () {
                             setState(
                               () {
@@ -213,7 +213,7 @@ class _CheckFlashcardViewState extends State<CheckFlashcardView> {
                   );
                 }),
               ),
-              MainButtonStyle(
+              StyledButton(
                 onPressed: () {
                   final FlashcardGuess flashcardGuess = FlashcardGuess(
                     flashcard: widget.flashcard,

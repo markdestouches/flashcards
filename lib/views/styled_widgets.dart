@@ -13,11 +13,10 @@ class StyledText extends StatelessWidget {
   }
 }
 
-class MainButtonStyle extends StatelessWidget {
+class StyledButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Widget child;
-  const MainButtonStyle(
-      {required this.onPressed, required this.child, super.key});
+  const StyledButton({required this.onPressed, required this.child, super.key});
 
   @override
   Widget build(BuildContext context) {

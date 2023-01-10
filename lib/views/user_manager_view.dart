@@ -16,7 +16,7 @@ class UserManagerView extends StatelessWidget {
     return Column(children: [
       Container(
         alignment: Alignment.topCenter,
-        child: MainButtonStyle(
+        child: StyledButton(
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -25,7 +25,7 @@ class UserManagerView extends StatelessWidget {
       ),
       const SizedBox(width: 150, child: Divider()),
       StyledText(context.watch<UserManager>().currentUser!.name),
-      MainButtonStyle(
+      StyledButton(
         onPressed: userCount > 0
             ? () {
                 Navigator.of(context).push(MaterialPageRoute(
@@ -34,14 +34,14 @@ class UserManagerView extends StatelessWidget {
             : () {},
         child: const StyledText("Change User"),
       ),
-      MainButtonStyle(
+      StyledButton(
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => const UserRegisterView()));
         },
         child: const StyledText("Create User"),
       ),
-      MainButtonStyle(
+      StyledButton(
         onPressed: userCount > 0
             ? () {
                 Navigator.of(context).push(MaterialPageRoute(
