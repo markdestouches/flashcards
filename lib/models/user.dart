@@ -35,22 +35,6 @@ class User extends ChangeNotifier {
     sortFlashcards();
   }
 
-  static void transferFlashcardManager(User sourceUser, User targetUser) {
-    // targetUser.flashcards = sourceUser.flashcards;
-    // sourceUser.flashcards = [];
-    throw UnimplementedError(
-        "transferFlashcardManager function is unimplemented");
-  }
-
-  // @override
-  // String toString() {
-  //   String flashcardsString = "flashcards:\n";
-  //   for (Flashcard f in flashcards) {
-  //     flashcardsString += "${f.toString()}\n";
-  //   }
-  //   return "id: $id\nname: $name\nflashcards: $flashcardsString";
-  // }
-
   void sortFlashcards() {
     flashcards.sort(
       (a, b) => a.alertTime.compareTo(b.alertTime),
@@ -79,12 +63,6 @@ class User extends ChangeNotifier {
     });
     notifyListeners();
   }
-
-  // void addAllFlashcards(Iterable<Flashcard> iterableFlashcards) {
-  //   flashcards.addAll(iterableFlashcards);
-  //   sortFlashcards();
-  //   notifyListeners();
-  // }
 
   void clearFlashcards() {
     flashcards.clear();

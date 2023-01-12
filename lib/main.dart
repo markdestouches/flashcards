@@ -73,34 +73,36 @@ class UnloggedLandingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      StyledButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return const UserLoginView();
-              },
-            ),
-          );
-        },
-        child: const StyledText("Login"),
-      ),
-      StyledButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return const UserRegisterView();
-              },
-            ),
-          );
-        },
-        child: const StyledText("Register"),
-      ),
-    ]);
+    return Column(
+      children: [
+        StyledButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return const UserLoginView();
+                },
+              ),
+            );
+          },
+          child: const StyledText("Login"),
+        ),
+        StyledButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return const UserRegisterView();
+                },
+              ),
+            );
+          },
+          child: const StyledText("Register"),
+        ),
+      ],
+    );
   }
 }
 
@@ -111,32 +113,31 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(children: [
-        ElevatedButton(
-          style: ButtonStyle(elevation:
-              MaterialStateProperty.resolveWith<double?>(
-                  (Set<MaterialState> states) {
-            if (states.contains(MaterialState.hovered)) {
-              return 0;
-            } else {
-              return 0;
-            }
-          }), backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-            (states) {
-              return Colors.transparent;
+      child: Column(
+        children: [
+          ElevatedButton(
+            style: ButtonStyle(elevation:
+                MaterialStateProperty.resolveWith<double?>(
+                    (Set<MaterialState> states) {
+              if (states.contains(MaterialState.hovered)) {
+                return 0;
+              } else {
+                return 0;
+              }
+            }), backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+              (states) {
+                return Colors.transparent;
+              },
+            )),
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const UserManagerView()));
             },
-          )),
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => const UserManagerView()));
-          },
-          child: StyledText(context.watch<UserManager>().currentUser!.name),
-        ),
-        const UserFlashcardListView(),
-
-        // const Divider(),
-        // kDebugMode ? const UserDebugFlashcardListView() : Container(),
-      ]),
+            child: StyledText(context.watch<UserManager>().currentUser!.name),
+          ),
+          const UserFlashcardListView(),
+        ],
+      ),
     );
   }
 }

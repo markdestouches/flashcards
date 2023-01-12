@@ -1,6 +1,7 @@
 import 'package:flashcards/models/user.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:flashcards/views/styled_widgets.dart';
 
@@ -41,102 +42,104 @@ class _AddFlashcardViewState extends State<AddFlashcardView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SizedBox.expand(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                alignment: Alignment.topCenter,
-                child: StyledButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const StyledText("Back"),
-                ),
-              ),
-              SizedBox(
-                width: 300,
-                child: TextFormField(
-                  autofocus: true,
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: "Visible"),
-                  validator: (value) => validateCharLimit(value, 25),
-                ),
-              ),
-              SizedBox(
-                width: 300,
-                child: TextFormField(
-                  autofocus: true,
-                  controller: _hintController,
-                  decoration: const InputDecoration(labelText: "Hint"),
-                  validator: (value) => validateCharLimit(value, 75, 0),
-                ),
-              ),
-              SizedBox(
-                width: 300,
-                child: ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemCount: _hiddenFieldControllers.length,
-                  itemBuilder: ((context, index) {
-                    return TextFormField(
-                      controller: _hiddenFieldControllers[index],
-                      decoration:
-                          InputDecoration(labelText: "Hidden #${index + 1}"),
-                      validator: (value) => validateCharLimit(value, 25),
-                    );
-                  }),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    splashRadius: 15.0,
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      setState(() {
-                        _hiddenFieldControllers.add(TextEditingController());
-                      });
-                    },
+      body: Form(
+        key: _formKey,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Center(
+                child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                    minWidth: 300,
+                    maxWidth: 300),
+                child: Column(children: [
+                  Container(
+                    alignment: Alignment.topCenter,
+                    child: StyledButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const StyledText("Back"),
+                    ),
                   ),
-                  _hiddenFieldControllers.length > 1
-                      ? IconButton(
-                          splashRadius: 15.0,
-                          icon: const Icon(Icons.remove),
-                          onPressed: () {
-                            setState(() {
-                              _hiddenFieldControllers.removeLast();
-                            });
-                          },
-                        )
-                      : Container(),
-                ],
+                  TextFormField(
+                    autofocus: true,
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: "Visible"),
+                    validator: (value) => validateCharLimit(value, 25),
+                  ),
+                  TextFormField(
+                    autofocus: true,
+                    controller: _hintController,
+                    decoration: const InputDecoration(labelText: "Hint"),
+                    validator: (value) => validateCharLimit(value, 75, 0),
+                  ),
+                  SizedBox(
+                    child: ListView.builder(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: _hiddenFieldControllers.length,
+                      itemBuilder: ((context, index) {
+                        return TextFormField(
+                          controller: _hiddenFieldControllers[index],
+                          decoration: InputDecoration(
+                              labelText: "Hidden #${index + 1}"),
+                          validator: (value) => validateCharLimit(value, 25),
+                        );
+                      }),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        splashRadius: 15.0,
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          setState(() {
+                            _hiddenFieldControllers
+                                .add(TextEditingController());
+                          });
+                        },
+                      ),
+                      _hiddenFieldControllers.length > 1
+                          ? IconButton(
+                              splashRadius: 15.0,
+                              icon: const Icon(Icons.remove),
+                              onPressed: () {
+                                setState(() {
+                                  _hiddenFieldControllers.removeLast();
+                                });
+                              },
+                            )
+                          : Container(),
+                    ],
+                  ),
+                  StyledButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        final flashcard = Flashcard(
+                          name: _nameController.text,
+                          hint: _hintController.text.isNotEmpty
+                              ? _hintController.text
+                              : null,
+                          hidden: _hiddenFieldControllers
+                              .map(
+                                (e) => e.text,
+                              )
+                              .toList(),
+                        );
+                        context.read<User>().addFlashcard(flashcard);
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: const StyledText("Submit"),
+                  )
+                ]),
               ),
-              StyledButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final flashcard = Flashcard(
-                      name: _nameController.text,
-                      hint: _hintController.text.isNotEmpty
-                          ? _hintController.text
-                          : null,
-                      hidden: _hiddenFieldControllers
-                          .map(
-                            (e) => e.text,
-                          )
-                          .toList(),
-                    );
-                    context.read<User>().addFlashcard(flashcard);
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: const StyledText("Submit"),
-              )
-            ],
-          ),
+            ));
+          },
         ),
       ),
     );
