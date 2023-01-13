@@ -11,6 +11,7 @@ import 'package:isar/isar.dart';
 import 'package:provider/provider.dart';
 import 'package:desktop_window/desktop_window.dart';
 
+// TODO: add duration tooltip to flashcards
 void main() {
   Isar isarInstance =
       Isar.openSync([FlashcardSchema, PersistentUserDataSchema]);

@@ -37,7 +37,7 @@ class User extends ChangeNotifier {
 
   void sortFlashcards() {
     flashcards.sort(
-      (a, b) => a.alertTime.compareTo(b.alertTime),
+      (a, b) => a.reviewTime.compareTo(b.reviewTime),
     );
   }
 
@@ -90,7 +90,7 @@ class User extends ChangeNotifier {
     }
 
     flashcardGuess.flashcard
-        .adjustAlertTime(isCorrectGuess, flashcardGuess.isHintShown);
+        .adjustReviewTime(isCorrectGuess, flashcardGuess.isHintShown);
 
     isarInstance.writeTxnSync(() {
       return isarInstance.flashcards.putSync(flashcardGuess.flashcard);

@@ -3,9 +3,9 @@ import 'package:isar/isar.dart';
 
 part 'flashcard.g.dart';
 
-const List<Duration> _alertOffsets = _properAlertOffsets;
+const List<Duration> _reviewDelays = _properReviewDelays;
 
-const List<Duration> _shortAlertOffsets = [
+const List<Duration> _shortReviewDelays = [
   Duration(seconds: 5),
   Duration(seconds: 10),
   Duration(seconds: 30),
@@ -13,7 +13,7 @@ const List<Duration> _shortAlertOffsets = [
   Duration(seconds: 360),
 ];
 
-const List<Duration> _properAlertOffsets = [
+const List<Duration> _properReviewDelays = [
   Duration(seconds: 5),
   Duration(minutes: 2),
   Duration(minutes: 10),
@@ -23,6 +23,50 @@ const List<Duration> _properAlertOffsets = [
   Duration(days: 25),
   Duration(days: 120),
 ];
+
+abstract class ReviewState {
+  String timeTillReview = "";
+  String get timeTillReviewPrefixed => timeTillReview;
+}
+
+class ReviewIsDue extends ReviewState {
+  ReviewIsDue() {
+    timeTillReview = "now";
+  }
+}
+
+abstract class ReviewIsNotDue extends ReviewState {
+  ReviewIsNotDue({required Duration timeTillReview}) {
+    String formattedTimeTillReview;
+    if (timeTillReview.inSeconds <= const Duration(seconds: 1).inSeconds) {
+      formattedTimeTillReview = "1 second";
+    } else if (timeTillReview < const Duration(minutes: 1)) {
+      formattedTimeTillReview = "${timeTillReview.inSeconds} seconds";
+    } else if (timeTillReview < const Duration(hours: 1)) {
+      formattedTimeTillReview = "${1 + timeTillReview.inMinutes} minutes";
+    } else if (timeTillReview < const Duration(days: 1)) {
+      formattedTimeTillReview = "${1 + timeTillReview.inHours} hours";
+    } else if (timeTillReview < const Duration(days: 30)) {
+      formattedTimeTillReview = "${1 + timeTillReview.inDays} days";
+    } else {
+      formattedTimeTillReview = "${1 + timeTillReview.inDays / 30} months";
+    }
+    this.timeTillReview = formattedTimeTillReview;
+  }
+
+  @override
+  String get timeTillReviewPrefixed => "in $timeTillReview";
+}
+
+class ReviewIsLocked extends ReviewIsNotDue {
+  ReviewIsLocked({required timeTillReview})
+      : super(timeTillReview: timeTillReview);
+}
+
+class ReviewIsUnlocked extends ReviewIsNotDue {
+  ReviewIsUnlocked({required timeTillReview})
+      : super(timeTillReview: timeTillReview);
+}
 
 // If the review lock factor is 0.2, the flashcard is meant to be locked for review
 // until 80% of the current alert offset duration has elapsed
@@ -35,60 +79,42 @@ class Flashcard {
   final List<String> hidden;
   final String? hint;
   final DateTime created;
-  DateTime alertTime;
-  int alertOffsetIndex;
+  DateTime reviewTime;
+  int reviewDelayIndex;
 
   Flashcard({user, this.name = "", this.hidden = const [], this.hint})
       : created = DateTime.now(),
-        alertTime = DateTime.now().add(_alertOffsets[0]),
-        alertOffsetIndex = 0;
+        reviewTime = DateTime.now().add(_reviewDelays[0]),
+        reviewDelayIndex = 0;
 
-  void adjustAlertTime(bool isCorrectGuess, bool isHintShown) {
+  void adjustReviewTime(bool isCorrectGuess, bool isHintShown) {
     if (isCorrectGuess == false) {
-      if (alertOffsetIndex > 0) {
-        alertOffsetIndex -= 1;
+      if (reviewDelayIndex > 0) {
+        reviewDelayIndex -= 1;
       }
     } else {
-      if (alertOffsetIndex < _alertOffsets.length && isHintShown == false) {
-        alertOffsetIndex += 1;
+      if (reviewDelayIndex < _reviewDelays.length && isHintShown == false) {
+        reviewDelayIndex += 1;
       }
     }
-    alertTime = DateTime.now().add(_alertOffsets[alertOffsetIndex]);
+    reviewTime = DateTime.now().add(_reviewDelays[reviewDelayIndex]);
   }
 
-  Duration getFullAlertDelayDuration() {
-    return _alertOffsets[alertOffsetIndex];
+  Duration getFullReviewDelayDuration() {
+    return _reviewDelays[reviewDelayIndex];
   }
 
-  FlashcardAlertState getAlertState(DateTime currentTime) {
-    final diffSec = alertTime.difference(currentTime).inSeconds;
-    if (diffSec <= 0) {
-      return FlashcardAlertState.triggered;
-    } else if (diffSec / getFullAlertDelayDuration().inSeconds <
+  ReviewState getReviewState(DateTime currentTime) {
+    final timeTillReview = reviewTime.difference(currentTime);
+    if (timeTillReview.inSeconds <= 0) {
+      return ReviewIsDue();
+    } else if (timeTillReview.inSeconds /
+            getFullReviewDelayDuration().inSeconds <
         _reviewLockFactor) {
-      return FlashcardAlertState.reviewUnlocked;
+      return ReviewIsUnlocked(timeTillReview: timeTillReview);
     } else {
-      return FlashcardAlertState.reviewLocked;
+      return ReviewIsLocked(timeTillReview: timeTillReview);
     }
-  }
-
-  String getFormattedTimeTillALert(DateTime currentTime) {
-    final timeTillNextAlert = alertTime.difference(currentTime);
-    String formattedAlertTime;
-    if (timeTillNextAlert < const Duration(seconds: 1)) {
-      formattedAlertTime = "now";
-    } else if (timeTillNextAlert < const Duration(minutes: 1)) {
-      formattedAlertTime = "in ${timeTillNextAlert.inSeconds} second(s)";
-    } else if (timeTillNextAlert < const Duration(hours: 1)) {
-      formattedAlertTime = "in ${1 + timeTillNextAlert.inMinutes} minute(s)";
-    } else if (timeTillNextAlert < const Duration(days: 1)) {
-      formattedAlertTime = "in ${1 + timeTillNextAlert.inHours} hour(s)";
-    } else if (timeTillNextAlert < const Duration(days: 30)) {
-      formattedAlertTime = "in ${1 + timeTillNextAlert.inDays} day(s)";
-    } else {
-      formattedAlertTime = "in ${1 + timeTillNextAlert.inDays / 30} month(s)";
-    }
-    return formattedAlertTime;
   }
 
   @override
@@ -101,8 +127,8 @@ class Flashcard {
       representation += "#${i + 1}: ${hidden[i]}\n";
     }
     representation += "created: ${created.toString()}\n";
-    representation += "alertTime: ${alertTime.toString()}\n";
-    representation += "alertOffsetIndex: ${alertOffsetIndex.toString()}";
+    representation += "alertTime: ${reviewTime.toString()}\n";
+    representation += "alertOffsetIndex: ${reviewDelayIndex.toString()}";
     return representation;
   }
 }
@@ -116,10 +142,4 @@ class FlashcardGuess {
     required this.guessFields,
     required this.isHintShown,
   });
-}
-
-enum FlashcardAlertState {
-  triggered,
-  reviewLocked,
-  reviewUnlocked,
 }

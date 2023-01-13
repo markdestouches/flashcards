@@ -91,8 +91,8 @@ void _flashcardSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.alertOffsetIndex);
-  writer.writeDateTime(offsets[1], object.alertTime);
+  writer.writeLong(offsets[0], object.reviewDelayIndex);
+  writer.writeDateTime(offsets[1], object.reviewTime);
   writer.writeDateTime(offsets[2], object.created);
   writer.writeStringList(offsets[3], object.hidden);
   writer.writeString(offsets[4], object.hint);
@@ -110,8 +110,8 @@ Flashcard _flashcardDeserialize(
     hint: reader.readStringOrNull(offsets[4]),
     name: reader.readStringOrNull(offsets[5]) ?? "",
   );
-  object.alertOffsetIndex = reader.readLong(offsets[0]);
-  object.alertTime = reader.readDateTime(offsets[1]);
+  object.reviewDelayIndex = reader.readLong(offsets[0]);
+  object.reviewTime = reader.readDateTime(offsets[1]);
   object.id = id;
   return object;
 }
