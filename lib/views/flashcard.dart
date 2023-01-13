@@ -268,48 +268,43 @@ class FlashcardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final flashcardAlertState = flashcard.getReviewState(currentTime);
-    final Color textColor = flashcardAlertState is ReviewIsLocked ||
+    final flashcardReviewState = flashcard.getReviewState(currentTime);
+    final Color textColor = flashcardReviewState is ReviewIsLocked ||
             buttonBackgroundColor!.computeLuminance() > 0.5
         ? Colors.black
         : Colors.white;
-    return Tooltip(
-      message:
-          "Current review delay: ${flashcard.getFullReviewDelayDuration()}",
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            elevation: 0.0,
-            backgroundColor: buttonBackgroundColor,
-            shape:
-                const BeveledRectangleBorder(borderRadius: BorderRadius.zero)),
-        onPressed: flashcardAlertState is ReviewIsLocked
-            ? null
-            : () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: ((context) {
-                      return CheckFlashcardView(
-                        flashcard: flashcard,
-                      );
-                    }),
-                  ),
-                );
-              },
-        child: ListTile(
-          leading: flashcardAlertState is ReviewIsDue
-              ? Icon(Icons.warning, color: textColor)
-              : const SizedBox(width: 0, height: 0),
-          title: Text(
-            flashcard.name,
-            style: TextStyle(
-              color: textColor,
-            ),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+          elevation: 0.0,
+          backgroundColor: buttonBackgroundColor,
+          shape: const BeveledRectangleBorder(borderRadius: BorderRadius.zero)),
+      onPressed: flashcardReviewState is ReviewIsLocked
+          ? null
+          : () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: ((context) {
+                    return CheckFlashcardView(
+                      flashcard: flashcard,
+                    );
+                  }),
+                ),
+              );
+            },
+      child: ListTile(
+        leading: flashcardReviewState is ReviewIsDue
+            ? Icon(Icons.warning, color: textColor)
+            : const SizedBox(width: 0, height: 0),
+        title: Text(
+          flashcard.name,
+          style: TextStyle(
+            color: textColor,
           ),
-          subtitle: Text(
-            "Review ${flashcardAlertState.timeTillReviewPrefixed}",
-            style: TextStyle(
-                color: textColor, fontSize: 15, fontWeight: FontWeight.w500),
-          ),
+        ),
+        subtitle: Text(
+          "Review ${flashcardReviewState.timeTillReviewPrefixed}",
+          style: TextStyle(
+              color: textColor, fontSize: 15, fontWeight: FontWeight.w500),
         ),
       ),
     );
